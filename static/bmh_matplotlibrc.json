@@ -1,6 +1,5 @@
 {
   "lines.linewidth": 2.0,
-  "examples.download": true,
   "axes.edgecolor": "#bcbcbc",
   "patch.linewidth": 0.5,
   "legend.fancybox": true,
@@ -20,6 +19,5 @@
   "grid.linestyle":"solid",
   "patch.edgecolor": "#eeeeee",
   "axes.titlesize": "x-large",
-  "svg.embed_char_paths": "path",
-  "examples.directory": ""
+  "svg.embed_char_paths": "path"
 }
