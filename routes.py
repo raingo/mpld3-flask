@@ -5,6 +5,8 @@ import matplotlib
 import json
 import random
 
+import os
+
 matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 plt.ioff()
@@ -25,8 +27,22 @@ y = [a * 2 + random.randint(-20, 20) for a in x]
 pie_fracs = [20, 30, 40, 10]
 pie_labels = ["A", "B", "C", "D"]
 
+import re
+loss_pattern = re.compile(r'Iteration (\d+), loss = ([\d\.]+)')
 
-def draw_fig(fig_type):
+def load_log(log_path):
+
+    iter_loss = []
+    with open(log_path) as reader:
+        for line in reader:
+            m = loss_pattern.search(line)
+            if m:
+                iter_loss.append((int(m.group(1)), float(m.group(2))))
+
+    return iter_loss
+
+
+def draw_fig(logpath):
     """Returns html equivalent of matplotlib figure
 
     Parameters
@@ -41,23 +57,21 @@ def draw_fig(fig_type):
     d3 representation of figure
     """
 
+    n_points = 100
+
     with lock:
         fig, ax = plt.subplots()
-        if fig_type == "line":
-            ax.plot(x, y)
-        elif fig_type == "bar":
-            ax.bar(x, y)
-        elif fig_type == "pie":
-            ax.pie(pie_fracs, labels=pie_labels)
-        elif fig_type == "scatter":
-            ax.scatter(x, y)
-        elif fig_type == "hist":
-            ax.hist(y, 10, normed=1)
-        elif fig_type == "area":
-            ax.plot(x, y)
-            ax.fill_between(x, 0, y, alpha=0.2)
 
-    
+        xy = load_log(logpath)
+        x = [f[0] for f in xy]
+        y = [f[1] for f in xy]
+
+        n = len(x)
+        intv = n / n_points
+
+        ax.plot(x[::intv], y[::intv])
+
+
     return mpld3.fig_to_html(fig)
 
 app = Flask(__name__)
@@ -71,8 +85,13 @@ def home():
 @app.route('/query', methods=['POST'])
 def query():
     data = json.loads(request.data)
-    return draw_fig(data["plot_type"])
+    logpath = data['logpath']
 
+    print logpath
+
+    if os.path.exists(logpath):
+        return draw_fig(logpath)
+    return "not found"
 
 if __name__ == '__main__':
-    app.run(debug=True, host='0.0.0.0')
+    app.run(debug=True, host='0.0.0.0', port=8080)

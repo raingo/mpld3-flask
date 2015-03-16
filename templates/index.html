@@ -1,31 +1,19 @@
 {% extends "layout.html" %}
 {% block content %}
 
-<style> 
+<style>
 div #sidebar
 {
   border:2px solid #a1a1a1;
-  padding:10px 20px; 
+  padding:10px 20px;
   border-radius:15px;
 }
 </style>
 
 <div id="sidebar">
-  <span>Select plot type</span>
-  <br/>
-  <input type="radio" name="plot_type" value="line" checked>Line</input>
-  <br/>
-  <input type="radio" name="plot_type" value="bar" >Bar</input>
-  <br/>
-  <input type="radio" name="plot_type" value="pie" >Pie</input>
-  <br/>
-  <input type="radio" name="plot_type" value="scatter" >Scatter</input>
-  <br/>
-  <input type="radio" name="plot_type" value="hist" >Histogram</input>
-  <br/>
-  <input type="radio" name="plot_type" value="area" >Area</input>
-  <br/>
-  <button type="button" id="query">View Plot</button>
+  <span>log path</span>
+  <input type="text" name="logpath">
+  <button type="button" id="query">view log</button>
   <br/>
 </div>
 <div id="loading-div-background">
@@ -35,7 +23,7 @@ div #sidebar
   </div>
 </div>
 <div id="container" style="width:70%; height:400px;"></div>
-<script type="text/javascript">   
+<script type="text/javascript">
 $("#loading-div-background").css({ opacity: 0.7 });
 function datetime_to_epoch(datetime)
 {
@@ -44,22 +32,24 @@ function datetime_to_epoch(datetime)
   return epoch;
 }
 
-$("#query").click(function() {  
+$("#query").click(function() {
+
+  var logpath = $('input:text[name=logpath]').val();
+  var qu = {"logpath":logpath};
+  console.log(qu);
 
   $("#loading-div-background").show();
   $("#container").hide();
-  var plot_type = $('input:radio[name=plot_type]:checked').val();
-  var qu = {"plot_type":plot_type}
   $.ajax({
     type: "POST",
     async:true,
     contentType: "application/json; charset=utf-8",
     url: "/query",
     data: JSON.stringify(qu),
-    success: function (data) {     
+    success: function (data) {
      var graph = $("#container");
-     graph.html(data);   
-     $("#loading-div-background").hide();      
+     graph.html(data);
+     $("#loading-div-background").hide();
      $("#container").show();
    },
    dataType: "html"
