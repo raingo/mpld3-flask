@@ -28,7 +28,17 @@ pie_fracs = [20, 30, 40, 10]
 pie_labels = ["A", "B", "C", "D"]
 
 import re
-iter_pattern = re.compile(r'Iteration (\d+), loss = ([\d\.]+)')
+iter_pattern = re.compile(r'Iteration (\d+), Testing net')
+res_pattern = re.compile(r'Test net output #(\d+): (\S+) = ([\d\.]+)')
+
+def load_res(reader, res, iter):
+    while True:
+        line = reader.readline()
+        m = res_pattern.search(line)
+
+        if not m:
+            break
+        res.append((iter, m.group(2), float(m.group(3))))
 
 def load_log(log_path):
 
@@ -38,9 +48,10 @@ def load_log(log_path):
             line = reader.readline()
             if not line:
                 break
+
             m = iter_pattern.search(line)
             if m:
-                iter_loss.append((int(m.group(1)), float(m.group(2))))
+                load_res(reader, iter_loss, int(m.group(1)))
 
     return iter_loss
 
@@ -60,19 +71,26 @@ def draw_fig(logpath):
     d3 representation of figure
     """
 
-    n_points = 100
+    n_points = 1000
 
     with lock:
+
+        xNy = load_log(logpath)
+        names = set([n for _, n, _ in xNy])
         fig, ax = plt.subplots()
+        for name in names:
+            if 'top' not in name:
+                continue
+            xy = [(x, y) for x, n, y in xNy if n == name]
+            x = [f[0] for f in xy]
+            y = [f[1] for f in xy]
 
-        xy = load_log(logpath)
-        x = [f[0] for f in xy]
-        y = [f[1] for f in xy]
+            n = len(x)
+            intv = max(1, n / n_points)
 
-        n = len(x)
-        intv = max(1, n / n_points)
-
-        ax.plot(x[::intv], y[::intv])
+            ax.plot(x[::intv], y[::intv], label = name)
+        print len(names)
+        ax.legend(loc = 'best')
 
 
     return mpld3.fig_to_html(fig)
@@ -98,4 +116,4 @@ def query():
     return "not found"
 
 if __name__ == '__main__':
-    app.run(debug=False, host='0.0.0.0', port=8080)
+    app.run(debug=False, host='0.0.0.0', port=8081)

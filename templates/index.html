@@ -12,7 +12,9 @@ div #sidebar
 
 <div id="sidebar">
   <span>log path</span>
-  <input type="text" name="logpath">
+  <input type="text" name="logpath" value="{{default}}">
+  <input type="radio" name="type" value="loss">Loss<br>
+  <input type="radio" name="type" value="acc" checked="checked">Accuracy <br>
   <button type="button" id="query">view log</button>
   <br/>
 </div>
@@ -35,8 +37,9 @@ function datetime_to_epoch(datetime)
 $("#query").click(function() {
 
   var logpath = $('input:text[name=logpath]').val();
-  var qu = {"logpath":logpath};
-  console.log(qu);
+  var type = $('input:radio[name=type]:checked').val();
+  var qu = {"logpath":logpath, 'type':type};
+  //console.log(qu);
 
   $("#loading-div-background").show();
   $("#container").hide();
